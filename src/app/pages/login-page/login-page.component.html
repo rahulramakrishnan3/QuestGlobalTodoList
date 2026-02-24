@@ -1,0 +1,32 @@
+<section class="login-page">
+  <form class="login-card" (ngSubmit)="onSubmit()">
+    <h1>Login</h1>
+    <p>Enter credentials to continue to home.</p>
+
+    <label for="username">Username</label>
+    <input
+      id="username"
+      type="text"
+      name="username"
+      [(ngModel)]="username"
+      placeholder="admin"
+      required
+    />
+
+    <label for="password">Password</label>
+    <input
+      id="password"
+      type="password"
+      name="password"
+      [(ngModel)]="password"
+      placeholder="admin123"
+      required
+    />
+
+    <button type="submit">Login</button>
+
+    @if (errorMessage) {
+      <p class="error">{{ errorMessage }}</p>
+    }
+  </form>
+</section>
