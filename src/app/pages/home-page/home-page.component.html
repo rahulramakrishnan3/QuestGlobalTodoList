@@ -13,10 +13,48 @@
           type="text"
           placeholder="What do you need to do today?"
           autocomplete="off"
+          [(ngModel)]="newTaskTitle"
+          (keyup.enter)="addTask()"
+          [ngModelOptions]="{ standalone: true }"
         />
-        <button type="button" class="add-btn">Add</button>
+        <button type="button" class="add-btn" (click)="addTask()">Add</button>
       </div>
     </div>
+
+    <section class="todo-list">
+      <h2>Task List</h2>
+
+      @if (!todos.length) {
+        <p class="empty-state">No tasks yet. Add one to get started.</p>
+      } @else {
+        <ul>
+          @for (todo of todos; track todo.id) {
+            <li class="todo-item">
+              @if (editingTodoId === todo.id) {
+                <div class="todo-edit-row">
+                  <input
+                    type="text"
+                    [(ngModel)]="editTaskTitle"
+                    (keyup.enter)="saveEdit(todo.id)"
+                    [ngModelOptions]="{ standalone: true }"
+                  />
+                  <button type="button" class="save-btn" (click)="saveEdit(todo.id)">Save</button>
+                  <button type="button" class="cancel-btn" (click)="cancelEdit()">Cancel</button>
+                </div>
+              } @else {
+                <div class="todo-view-row">
+                  <span>{{ todo.title }}</span>
+                  <div class="actions">
+                    <button type="button" class="edit-btn" (click)="startEdit(todo)">Edit</button>
+                    <button type="button" class="delete-btn" (click)="deleteTask(todo.id)">Delete</button>
+                  </div>
+                </div>
+              }
+            </li>
+          }
+        </ul>
+      }
+    </section>
     <button type="button" class="logout-btn" (click)="logout()">Logout</button>
   </div>
 </section>

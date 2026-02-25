@@ -93,6 +93,80 @@ button:hover {
   box-shadow: 0 8px 18px rgba(15, 118, 110, 0.25);
 }
 
+.todo-list {
+  margin-bottom: 1.2rem;
+}
+
+.todo-list h2 {
+  margin: 0 0 0.8rem;
+  color: #0f172a;
+  font-size: 1.15rem;
+}
+
+.todo-list ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.55rem;
+}
+
+.todo-item {
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #ffffff;
+  padding: 0.7rem;
+}
+
+.todo-view-row,
+.todo-edit-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.55rem;
+}
+
+.todo-view-row span {
+  color: #1e293b;
+  font-size: 0.96rem;
+  word-break: break-word;
+}
+
+.todo-edit-row input {
+  flex: 1;
+  border: 1px solid #cbd5e1;
+  border-radius: 9px;
+  padding: 0.55rem 0.65rem;
+  font-size: 0.93rem;
+}
+
+.actions {
+  display: flex;
+  gap: 0.45rem;
+}
+
+.edit-btn,
+.save-btn {
+  background: linear-gradient(135deg, #2563eb, #3b82f6);
+  box-shadow: 0 6px 14px rgba(37, 99, 235, 0.2);
+}
+
+.delete-btn {
+  background: linear-gradient(135deg, #dc2626, #ef4444);
+  box-shadow: 0 6px 14px rgba(220, 38, 38, 0.2);
+}
+
+.cancel-btn {
+  background: linear-gradient(135deg, #64748b, #475569);
+  box-shadow: 0 6px 14px rgba(71, 85, 105, 0.22);
+}
+
+.empty-state {
+  margin: 0;
+  color: #64748b;
+  font-size: 0.92rem;
+}
+
 .logout-btn {
   background: linear-gradient(135deg, #334155, #1e293b);
   box-shadow: 0 8px 18px rgba(30, 41, 59, 0.2);
@@ -107,7 +181,23 @@ button:hover {
     flex-direction: column;
   }
 
+  .todo-view-row,
+  .todo-edit-row {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .actions {
+    width: 100%;
+  }
+
+  .actions button {
+    flex: 1;
+  }
+
   .add-btn,
+  .save-btn,
+  .cancel-btn,
   .logout-btn {
     width: 100%;
   }
