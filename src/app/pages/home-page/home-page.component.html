@@ -1,7 +1,22 @@
 <section class="home-page">
   <div class="home-card">
     <h1>Home Page</h1>
-    <p>Welcome, <strong>{{ username }}</strong>. You are authenticated with localStorage.</p>
-    <button type="button" (click)="logout()">Logout</button>
+    <p>
+      Welcome, <strong>{{ username }}</strong> This is your home page. Here you can manage your
+      todos and keep track of your tasks for the day.
+    </p>
+    <div class="todo-input">
+      <label for="todoTitle">New Todo</label>
+      <div class="todo-input-row">
+        <input
+          id="todoTitle"
+          type="text"
+          placeholder="What do you need to do today?"
+          autocomplete="off"
+        />
+        <button type="button" class="add-btn">Add</button>
+      </div>
+    </div>
+    <button type="button" class="logout-btn" (click)="logout()">Logout</button>
   </div>
 </section>
