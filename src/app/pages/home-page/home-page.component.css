@@ -6,7 +6,7 @@
   background:
     radial-gradient(circle at 15% 20%, #e0f2fe 0%, #f8fafc 45%),
     radial-gradient(circle at 85% 80%, #ccfbf1 0%, #f8fafc 40%);
-  font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+  font-family: 'Trebuchet MS', 'Segoe UI', sans-serif;
 }
 
 .home-card {
@@ -49,6 +49,7 @@ p {
 
 .todo-input-row {
   display: flex;
+  flex-direction: column;
   gap: 0.6rem;
 }
 
@@ -61,7 +62,9 @@ p {
   color: #0f172a;
   background: #fff;
   outline: none;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .todo-input input::placeholder {
@@ -73,6 +76,15 @@ p {
   box-shadow: 0 0 0 4px rgba(20, 184, 166, 0.2);
 }
 
+.eta-input {
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  padding: 0.7rem 0.75rem;
+  font-size: 0.9rem;
+  color: #0f172a;
+  background: #fff;
+}
+
 button {
   border: 0;
   border-radius: 11px;
@@ -80,7 +92,9 @@ button {
   padding: 0.72rem 1.05rem;
   font-weight: 600;
   cursor: pointer;
-  transition: transform 0.15s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.2s ease;
 }
 
 button:hover {
@@ -130,6 +144,22 @@ button:hover {
   color: #1e293b;
   font-size: 0.96rem;
   word-break: break-word;
+}
+
+.todo-content {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.todo-title {
+  color: #1e293b;
+  font-size: 0.96rem;
+  word-break: break-word;
+}
+
+.todo-eta {
+  color: #64748b;
+  font-size: 0.82rem;
 }
 
 .todo-edit-row input {

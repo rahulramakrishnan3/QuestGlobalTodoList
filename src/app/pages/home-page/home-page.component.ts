@@ -6,6 +6,7 @@ import { AuthService } from '../../services/auth.service';
 type TodoItem = {
   id: number;
   title: string;
+  eta: string | null;
 };
 
 @Component({
@@ -16,9 +17,11 @@ type TodoItem = {
 })
 export class HomePageComponent {
   newTaskTitle = '';
+  newTaskEta = '';
   todos: TodoItem[] = [];
   editingTodoId: number | null = null;
   editTaskTitle = '';
+  editTaskEta = '';
 
   constructor(
     private readonly authService: AuthService,
@@ -35,14 +38,17 @@ export class HomePageComponent {
       return;
     }
 
-    this.todos = [{ id: Date.now(), title }, ...this.todos];
+    const eta = this.newTaskEta ? this.newTaskEta : null;
+    this.todos = [{ id: Date.now(), title, eta }, ...this.todos];
     this.newTaskTitle = '';
+    this.newTaskEta = '';
     console.log(this.todos, '--- TODOS ---');
   }
 
   startEdit(todo: TodoItem): void {
     this.editingTodoId = todo.id;
     this.editTaskTitle = todo.title;
+    this.editTaskEta = todo.eta ?? '';
   }
 
   saveEdit(todoId: number): void {
@@ -51,13 +57,15 @@ export class HomePageComponent {
       return;
     }
 
-    this.todos = this.todos.map((todo) => (todo.id === todoId ? { ...todo, title } : todo));
+    const eta = this.editTaskEta ? this.editTaskEta : null;
+    this.todos = this.todos.map((todo) => (todo.id === todoId ? { ...todo, title, eta } : todo));
     this.cancelEdit();
   }
 
   cancelEdit(): void {
     this.editingTodoId = null;
     this.editTaskTitle = '';
+    this.editTaskEta = '';
   }
 
   deleteTask(todoId: number): void {
@@ -66,6 +74,14 @@ export class HomePageComponent {
       this.cancelEdit();
     }
     console.log(this.todos, '--- TODOS ---');
+  }
+
+  formatEta(eta: string | null): string {
+    if (!eta) {
+      return 'No ETA';
+    }
+
+    return new Date(eta).toLocaleString();
   }
 
   logout(): void {

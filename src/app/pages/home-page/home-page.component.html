@@ -17,6 +17,12 @@
           (keyup.enter)="addTask()"
           [ngModelOptions]="{ standalone: true }"
         />
+        <input
+          class="eta-input"
+          type="datetime-local"
+          [(ngModel)]="newTaskEta"
+          [ngModelOptions]="{ standalone: true }"
+        />
         <button type="button" class="add-btn" (click)="addTask()">Add</button>
       </div>
     </div>
@@ -38,12 +44,21 @@
                     (keyup.enter)="saveEdit(todo.id)"
                     [ngModelOptions]="{ standalone: true }"
                   />
+                  <input
+                    class="eta-input"
+                    type="datetime-local"
+                    [(ngModel)]="editTaskEta"
+                    [ngModelOptions]="{ standalone: true }"
+                  />
                   <button type="button" class="save-btn" (click)="saveEdit(todo.id)">Save</button>
                   <button type="button" class="cancel-btn" (click)="cancelEdit()">Cancel</button>
                 </div>
               } @else {
                 <div class="todo-view-row">
-                  <span>{{ todo.title }}</span>
+                  <div class="todo-content">
+                    <span class="todo-title">{{ todo.title }}</span>
+                    <small class="todo-eta">ETA: {{ formatEta(todo.eta) }}</small>
+                  </div>
                   <div class="actions">
                     <button type="button" class="edit-btn" (click)="startEdit(todo)">Edit</button>
                     <button type="button" class="delete-btn" (click)="deleteTask(todo.id)">Delete</button>
