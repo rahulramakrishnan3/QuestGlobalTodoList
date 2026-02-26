@@ -202,6 +202,39 @@ button:hover {
   box-shadow: 0 8px 18px rgba(30, 41, 59, 0.2);
 }
 
+.sync-btn {
+  background: linear-gradient(135deg, #0f766e, #14b8a6);
+  box-shadow: 0 8px 18px rgba(15, 118, 110, 0.2);
+}
+
+.footer-actions {
+  display: flex;
+  gap: 0.65rem;
+}
+
+.footer-actions button {
+  flex: 1;
+}
+
+button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.sync-status {
+  margin: 0.75rem 0 0;
+  font-size: 0.9rem;
+}
+
+.sync-status-success {
+  color: #047857;
+}
+
+.sync-status-error {
+  color: #b91c1c;
+}
+
 @media (max-width: 520px) {
   .home-card {
     padding: 1.2rem;
@@ -228,6 +261,7 @@ button:hover {
   .add-btn,
   .save-btn,
   .cancel-btn,
+  .sync-btn,
   .logout-btn {
     width: 100%;
   }

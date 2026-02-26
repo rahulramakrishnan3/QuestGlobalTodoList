@@ -70,6 +70,22 @@
         </ul>
       }
     </section>
-    <button type="button" class="logout-btn" (click)="logout()">Logout</button>
+
+    <div class="footer-actions">
+      <button type="button" class="sync-btn" [disabled]="isSyncing" (click)="syncToServer()">
+        {{ isSyncing ? 'Syncing...' : 'Sync to Server' }}
+      </button>
+      <button type="button" class="logout-btn" (click)="logout()">Logout</button>
+    </div>
+
+    @if (syncStatusMessage) {
+      <p
+        class="sync-status"
+        [class.sync-status-success]="syncStatusType === 'success'"
+        [class.sync-status-error]="syncStatusType === 'error'"
+      >
+        {{ syncStatusMessage }}
+      </p>
+    }
   </div>
 </section>

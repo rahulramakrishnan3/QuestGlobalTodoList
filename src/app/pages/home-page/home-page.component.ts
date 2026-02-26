@@ -17,6 +17,7 @@ type TodoItem = {
 })
 export class HomePageComponent implements OnInit {
   private readonly todosStorageKey = 'quest-global-todos';
+  private readonly syncEndpoint = 'http://localhost:3000/api/todos/sync';
 
   newTaskTitle = '';
   newTaskEta = '';
@@ -24,6 +25,9 @@ export class HomePageComponent implements OnInit {
   editingTodoId: number | null = null;
   editTaskTitle = '';
   editTaskEta = '';
+  isSyncing = false;
+  syncStatusMessage = '';
+  syncStatusType: 'success' | 'error' | '' = '';
 
   constructor(
     private readonly authService: AuthService,
@@ -96,6 +100,42 @@ export class HomePageComponent implements OnInit {
   logout(): void {
     this.authService.logout();
     void this.router.navigate(['/login']);
+  }
+
+  async syncToServer(): Promise<void> {
+    if (this.isSyncing) {
+      return;
+    }
+
+    this.isSyncing = true;
+    this.syncStatusMessage = '';
+    this.syncStatusType = '';
+
+    try {
+      const response = await fetch(this.syncEndpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username: this.username,
+          todos: this.todos,
+          syncedAt: new Date().toISOString(),
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Sync failed with status ${response.status}`);
+      }
+
+      this.syncStatusMessage = 'Tasks synced to server.';
+      this.syncStatusType = 'success';
+    } catch {
+      this.syncStatusMessage = 'Unable to sync. Check your server and try again.';
+      this.syncStatusType = 'error';
+    } finally {
+      this.isSyncing = false;
+    }
   }
 
   private loadTodosFromStorage(): void {
