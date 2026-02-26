@@ -2,12 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
-
-type TodoItem = {
-  id: number;
-  title: string;
-  eta: string | null;
-};
+import { TodoApiService, TodoItem } from '../../services/todo-api.service';
 
 @Component({
   selector: 'app-home-page',
@@ -17,12 +12,11 @@ type TodoItem = {
 })
 export class HomePageComponent implements OnInit {
   private readonly todosStorageKey = 'quest-global-todos';
-  private readonly syncEndpoint = 'http://localhost:3000/api/todos/sync';
 
   newTaskTitle = '';
   newTaskEta = '';
   todos: TodoItem[] = [];
-  editingTodoId: number | null = null;
+  editingTodoId: string | null = null;
   editTaskTitle = '';
   editTaskEta = '';
   isSyncing = false;
@@ -32,6 +26,7 @@ export class HomePageComponent implements OnInit {
   constructor(
     private readonly authService: AuthService,
     private readonly router: Router,
+    private readonly todoApiService: TodoApiService,
   ) {}
 
   ngOnInit(): void {
@@ -49,11 +44,26 @@ export class HomePageComponent implements OnInit {
     }
 
     const eta = this.newTaskEta ? this.newTaskEta : null;
-    this.todos = [{ id: Date.now(), title, eta }, ...this.todos];
-    this.saveTodosToStorage();
-    this.newTaskTitle = '';
-    this.newTaskEta = '';
-    console.log(this.todos, '--- TODOS ---');
+    this.todoApiService.createTodo({ title, eta }).subscribe({
+      next: (createdTodo) => {
+        this.todos = [
+          {
+            id: createdTodo.id,
+            title: createdTodo.title,
+            eta: createdTodo.eta,
+            completed: createdTodo.completed,
+          },
+          ...this.todos,
+        ];
+        this.saveTodosToStorage();
+        this.newTaskTitle = '';
+        this.newTaskEta = '';
+      },
+      error: () => {
+        this.syncStatusMessage = 'Unable to add task on server.';
+        this.syncStatusType = 'error';
+      },
+    });
   }
 
   startEdit(todo: TodoItem): void {
@@ -62,16 +72,36 @@ export class HomePageComponent implements OnInit {
     this.editTaskEta = todo.eta ?? '';
   }
 
-  saveEdit(todoId: number): void {
+  saveEdit(todoId: string): void {
     const title = this.editTaskTitle.trim();
     if (!title) {
       return;
     }
 
     const eta = this.editTaskEta ? this.editTaskEta : null;
-    this.todos = this.todos.map((todo) => (todo.id === todoId ? { ...todo, title, eta } : todo));
-    this.saveTodosToStorage();
-    this.cancelEdit();
+    const currentTodo = this.todos.find((todo) => todo.id === todoId);
+    this.todoApiService
+      .updateTodo(todoId, { title, eta, completed: currentTodo?.completed ?? false })
+      .subscribe({
+        next: (updatedTodo) => {
+          this.todos = this.todos.map((todo) =>
+            todo.id === todoId
+              ? {
+                  id: updatedTodo.id,
+                  title: updatedTodo.title,
+                  eta: updatedTodo.eta,
+                  completed: updatedTodo.completed,
+                }
+              : todo,
+          );
+          this.saveTodosToStorage();
+          this.cancelEdit();
+        },
+        error: () => {
+          this.syncStatusMessage = 'Unable to update task on server.';
+          this.syncStatusType = 'error';
+        },
+      });
   }
 
   cancelEdit(): void {
@@ -80,13 +110,20 @@ export class HomePageComponent implements OnInit {
     this.editTaskEta = '';
   }
 
-  deleteTask(todoId: number): void {
-    this.todos = this.todos.filter((todo) => todo.id !== todoId);
-    this.saveTodosToStorage();
-    if (this.editingTodoId === todoId) {
-      this.cancelEdit();
-    }
-    console.log(this.todos, '--- TODOS ---');
+  deleteTask(todoId: string): void {
+    this.todoApiService.deleteTodo(todoId).subscribe({
+      next: () => {
+        this.todos = this.todos.filter((todo) => todo.id !== todoId);
+        this.saveTodosToStorage();
+        if (this.editingTodoId === todoId) {
+          this.cancelEdit();
+        }
+      },
+      error: () => {
+        this.syncStatusMessage = 'Unable to delete task on server.';
+        this.syncStatusType = 'error';
+      },
+    });
   }
 
   formatEta(eta: string | null): string {
@@ -102,7 +139,7 @@ export class HomePageComponent implements OnInit {
     void this.router.navigate(['/login']);
   }
 
-  async syncToServer(): Promise<void> {
+  syncToServer(): void {
     if (this.isSyncing) {
       return;
     }
@@ -111,31 +148,26 @@ export class HomePageComponent implements OnInit {
     this.syncStatusMessage = '';
     this.syncStatusType = '';
 
-    try {
-      const response = await fetch(this.syncEndpoint, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
+    this.todoApiService
+      .syncTodos({
+        username: this.username,
+        todos: this.todos,
+        syncedAt: new Date().toISOString(),
+      })
+      .subscribe({
+        next: () => {
+          this.syncStatusMessage = 'Tasks synced to server.';
+          this.syncStatusType = 'success';
         },
-        body: JSON.stringify({
-          username: this.username,
-          todos: this.todos,
-          syncedAt: new Date().toISOString(),
-        }),
+        error: () => {
+          this.syncStatusMessage = 'Unable to sync. Check your server and try again.';
+          this.syncStatusType = 'error';
+          this.isSyncing = false;
+        },
+        complete: () => {
+          this.isSyncing = false;
+        },
       });
-
-      if (!response.ok) {
-        throw new Error(`Sync failed with status ${response.status}`);
-      }
-
-      this.syncStatusMessage = 'Tasks synced to server.';
-      this.syncStatusType = 'success';
-    } catch {
-      this.syncStatusMessage = 'Unable to sync. Check your server and try again.';
-      this.syncStatusType = 'error';
-    } finally {
-      this.isSyncing = false;
-    }
   }
 
   private loadTodosFromStorage(): void {
@@ -149,8 +181,17 @@ export class HomePageComponent implements OnInit {
     }
 
     try {
-      const parsedTodos = JSON.parse(storedTodos) as TodoItem[];
-      this.todos = Array.isArray(parsedTodos) ? parsedTodos : [];
+      const parsedTodos = JSON.parse(storedTodos) as Array<Partial<TodoItem> & { id?: string | number }>;
+      this.todos = Array.isArray(parsedTodos)
+        ? parsedTodos
+            .filter((todo) => !!todo.id && !!todo.title)
+            .map((todo) => ({
+              id: String(todo.id),
+              title: todo.title ?? '',
+              eta: todo.eta ?? null,
+              completed: todo.completed ?? false,
+            }))
+        : [];
     } catch {
       this.todos = [];
     }
