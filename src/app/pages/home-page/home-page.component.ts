@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
@@ -15,7 +15,9 @@ type TodoItem = {
   templateUrl: './home-page.component.html',
   styleUrl: './home-page.component.css',
 })
-export class HomePageComponent {
+export class HomePageComponent implements OnInit {
+  private readonly todosStorageKey = 'quest-global-todos';
+
   newTaskTitle = '';
   newTaskEta = '';
   todos: TodoItem[] = [];
@@ -27,6 +29,10 @@ export class HomePageComponent {
     private readonly authService: AuthService,
     private readonly router: Router,
   ) {}
+
+  ngOnInit(): void {
+    this.loadTodosFromStorage();
+  }
 
   get username(): string {
     return this.authService.getUsername();
@@ -40,6 +46,7 @@ export class HomePageComponent {
 
     const eta = this.newTaskEta ? this.newTaskEta : null;
     this.todos = [{ id: Date.now(), title, eta }, ...this.todos];
+    this.saveTodosToStorage();
     this.newTaskTitle = '';
     this.newTaskEta = '';
     console.log(this.todos, '--- TODOS ---');
@@ -59,6 +66,7 @@ export class HomePageComponent {
 
     const eta = this.editTaskEta ? this.editTaskEta : null;
     this.todos = this.todos.map((todo) => (todo.id === todoId ? { ...todo, title, eta } : todo));
+    this.saveTodosToStorage();
     this.cancelEdit();
   }
 
@@ -70,6 +78,7 @@ export class HomePageComponent {
 
   deleteTask(todoId: number): void {
     this.todos = this.todos.filter((todo) => todo.id !== todoId);
+    this.saveTodosToStorage();
     if (this.editingTodoId === todoId) {
       this.cancelEdit();
     }
@@ -87,5 +96,31 @@ export class HomePageComponent {
   logout(): void {
     this.authService.logout();
     void this.router.navigate(['/login']);
+  }
+
+  private loadTodosFromStorage(): void {
+    if (typeof localStorage === 'undefined') {
+      return;
+    }
+
+    const storedTodos = localStorage.getItem(this.todosStorageKey);
+    if (!storedTodos) {
+      return;
+    }
+
+    try {
+      const parsedTodos = JSON.parse(storedTodos) as TodoItem[];
+      this.todos = Array.isArray(parsedTodos) ? parsedTodos : [];
+    } catch {
+      this.todos = [];
+    }
+  }
+
+  private saveTodosToStorage(): void {
+    if (typeof localStorage === 'undefined') {
+      return;
+    }
+
+    localStorage.setItem(this.todosStorageKey, JSON.stringify(this.todos));
   }
 }
