@@ -1,4 +1,4 @@
 export const environment = {
   production: true,
-  apiBaseUrl: 'http://localhost:5000/api',
+  apiBaseUrl: 'https://quest-global-todo-list.vercel.app/api',
 };
