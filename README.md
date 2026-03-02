@@ -15,12 +15,12 @@ Angular 20 single-page todo application with:
 - Karma + Jasmine (default Angular test setup)
 
 ## Current Repository Scope
-This repository currently contains the Angular frontend only.
+This repository now contains both:
+- Angular frontend
+- Node.js/Express backend (`server/index.js`)
 
-The frontend is configured to call a backend API at:
+The frontend is configured to call:
 - `http://localhost:5000/api`
-
-Folders such as `api/` and `server/` are present but currently empty in this repository snapshot, so you must run a separate backend service (or add one) for todo operations to work.
 
 ## Features
 - Login page with route guard
@@ -49,6 +49,9 @@ src/
   environments/        # API base URL config
 public/
   manifest.webmanifest # PWA manifest
+server/
+  index.js             # Express API server + MongoDB integration
+  .env.example         # required backend env vars
 ```
 
 ## Prerequisites
@@ -65,24 +68,39 @@ public/
    ```bash
    npm start
    ```
-3. Open:
+3. Start backend API (new terminal):
+   ```bash
+   npm run start:backend
+   ```
+4. Open:
    - `http://localhost:4200`
 
 ## Available Scripts
 - `npm start` -> `ng serve`
+- `npm run start:backend` -> starts Express API on `:5000`
 - `npm run build` -> production build to `dist/`
 - `npm run watch` -> development watch build
 - `npm test` -> unit tests via Karma
 
 ## Environment Configuration
-Both environment files currently point to:
+Development frontend points to:
 - `apiBaseUrl: 'http://localhost:5000/api'`
 
 Files:
 - `src/environments/environment.ts`
 - `src/environments/environment.production.ts`
 
-If your backend runs elsewhere, update `apiBaseUrl` accordingly.
+Before production build, set `src/environments/environment.production.ts` with your hosted backend URL:
+- `apiBaseUrl: 'https://your-backend-domain.com/api'`
+
+## Backend Environment Variables
+Create `server/.env` (copy from `server/.env.example`) and set:
+- `PORT=5000`
+- `MONGODB_URI=<your mongodb connection string>`
+- `DB_NAME=quest_global_todos`
+- `FRONTEND_ORIGIN=<your hosted frontend URL>`
+
+The backend reads these via host platform environment variables (recommended for production).
 
 ## API Contract Expected by Frontend
 Base path:
@@ -94,6 +112,7 @@ Requests used:
 - `PUT /api/todos/:id` -> update todo
 - `DELETE /api/todos/:id` -> delete todo
 - `POST /api/todos/sync` -> manual sync payload
+- `GET /api/health` -> backend health check
 
 ### Expected Todo shape from API
 `todo-api.service.ts` maps API objects in this form:
@@ -127,7 +146,7 @@ Notes:
 
 ## Known Limitations
 - Demo authentication is hardcoded and not secure for production.
-- If backend is unavailable, create/update/delete/sync actions show error states.
+- Backend sync endpoint currently replaces the full todo collection.
 - `eta` is not persisted through backend CRUD unless backend is extended to store it.
 
 ## Troubleshooting
@@ -145,3 +164,19 @@ Notes:
 - Persist ETA in backend schema.
 - Add integration/e2e tests.
 - Add Docker setup for frontend + backend.
+
+## Deploy Backend (MongoDB + Hosting)
+1. Create MongoDB database (MongoDB Atlas recommended) and get `MONGODB_URI`.
+2. Deploy backend folder to a Node host (Render/Railway/Fly.io/EC2).
+3. Set environment variables on the host:
+   - `MONGODB_URI`
+   - `DB_NAME`
+   - `PORT` (optional; many hosts set this automatically)
+   - `FRONTEND_ORIGIN` (your frontend domain)
+4. Start command:
+   - `npm run start:backend`
+5. Verify backend:
+   - `GET https://<your-backend-domain>/api/health`
+6. Update frontend production API base URL in `src/environments/environment.production.ts`.
+7. Rebuild and redeploy frontend:
+   - `npm run build`
