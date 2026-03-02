@@ -6,6 +6,7 @@ const { MongoClient, ObjectId } = require('mongodb');
 
 const app = express();
 const port = Number(process.env.PORT || 5000);
+const host = process.env.HOST || '0.0.0.0';
 const mongoUri = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017';
 const dbName = process.env.DB_NAME || 'quest_global_todos';
 const frontendOrigin = process.env.FRONTEND_ORIGIN || '';
@@ -183,9 +184,9 @@ async function startServer() {
   todosCollection = db.collection('todos');
   await todosCollection.createIndex({ createdAt: -1 });
 
-  app.listen(port, () => {
+  app.listen(port, host, () => {
     // eslint-disable-next-line no-console
-    console.log(`Todo API server running at http://localhost:${port}`);
+    console.log(`Todo API server running at http://${host}:${port}`);
   });
 }
 
