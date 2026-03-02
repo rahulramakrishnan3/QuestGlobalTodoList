@@ -11,19 +11,44 @@ const mongoUri = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017';
 const dbName = process.env.DB_NAME || 'quest_global_todos';
 const frontendOrigin = process.env.FRONTEND_ORIGIN || '';
 
-const corsOptions = frontendOrigin
-  ? {
-      origin(origin, callback) {
-        if (!origin || origin === frontendOrigin) {
-          callback(null, true);
-          return;
-        }
-        callback(new Error('CORS blocked for this origin.'));
-      },
+function normalizeOrigin(value) {
+  return String(value || '')
+    .trim()
+    .toLowerCase()
+    .replace(/\/+$/, '');
+}
+
+const allowedOrigins = frontendOrigin
+  .split(',')
+  .map((origin) => normalizeOrigin(origin))
+  .filter(Boolean);
+
+const corsOptions = {
+  origin(origin, callback) {
+    if (!origin) {
+      callback(null, true);
+      return;
     }
-  : {};
+
+    if (!allowedOrigins.length) {
+      callback(null, true);
+      return;
+    }
+
+    const requestOrigin = normalizeOrigin(origin);
+    if (allowedOrigins.includes(requestOrigin)) {
+      callback(null, true);
+      return;
+    }
+
+    callback(new Error(`CORS blocked for origin: ${origin}`));
+  },
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+};
 
 app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
 app.use(express.json());
 
 const mongoClient = new MongoClient(mongoUri);
